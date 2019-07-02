@@ -22,18 +22,23 @@ FROM debian:sid
 # add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
 RUN groupadd -r mysql && useradd -r -g mysql mysql \
   \
+  && echo "***** Init bash..." \
   && printf "\nalias ll='ls -l'\nalias l='ls -lA'\n" >> /root/.bashrc \
   # Map Ctrl-Up and Ctrl-Down to history based bash completion
   && printf '"\\e[1;5A": history-search-backward\n"\\e[1;5B": history-search-forward\n"\\e[1;5C": forward-word\n"\\e[1;5D": backward-word' > /etc/inputrc \
   \
+  && echo "***** Install packages..." \
   && apt-get update \
+  # Install apt-get allowing subsequent package configuration
+  && DEBIAN_FRONTEND=noninteractive apt-get install -y apt-utils \
   # Install minimal admin utils
-  && DEBIAN_FRONTEND=noninteractive apt-get install -y apt-utils less nano procps \
+  && DEBIAN_FRONTEND=noninteractive apt-get install -y less nano procps \
   # Install MySQL server
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libpwquality-tools mysql-server-5.7 \
   # Clean cache
   && rm -rf /var/lib/apt/lists/* \
   \
+  && echo "***** Config mysql..." \
   && rm -rf /var/lib/mysql && mkdir -p /var/lib/mysql /var/run/mysqld \
   && touch /var/log/mysqld.log \
   && chown -R mysql:mysql /var/lib/mysql /var/run/mysqld /var/log/mysqld.log \
@@ -49,7 +54,8 @@ RUN groupadd -r mysql && useradd -r -g mysql mysql \
   # Set docker settings, these settings always win
   && printf '[client]\nsocket=/var/lib/mysql/mysql.sock\n\n[server]\nsocket=/var/lib/mysql/mysql.sock\ndatadir=/var/lib/mysql\nsecure-file-priv=/var/lib/mysql-files\nuser=mysql\nskip-host-cache\nskip-name-resolve\n' > /etc/mysql/mysql.conf.d/docker.cnf \
   \
-  && mkdir /docker-entrypoint-initdb.d
+  && mkdir /docker-entrypoint-initdb.d \
+  && echo "***** RUN commands finished"
 
 VOLUME /var/lib/mysql
 
