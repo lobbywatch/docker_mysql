@@ -17,7 +17,7 @@
 
 # Build image cmd: docker build -t debian-mysql-server-5.7 .
 
-FROM debian:sid
+FROM debian:sid-slim
 
 # add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
 RUN groupadd -r mysql && useradd -r -g mysql mysql \
